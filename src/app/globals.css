@@ -1,0 +1,252 @@
+@import "tailwindcss";
+
+/* ═══════════════════════════════════════════════════════════
+   VaultSudo — Cybersecurity Design System
+   ═══════════════════════════════════════════════════════════ */
+
+:root {
+  /* ── Core Colors ── */
+  --vault-bg-primary: #0a0e1a;
+  --vault-bg-secondary: #0f1629;
+  --vault-bg-panel: #111827;
+  --vault-bg-card: rgba(17, 24, 39, 0.7);
+
+  /* ── Status Colors ── */
+  --vault-green: #22c55e;
+  --vault-green-glow: rgba(34, 197, 94, 0.15);
+  --vault-green-dim: #166534;
+
+  --vault-amber: #f59e0b;
+  --vault-amber-glow: rgba(245, 158, 11, 0.15);
+  --vault-amber-dim: #92400e;
+
+  --vault-red: #ef4444;
+  --vault-red-glow: rgba(239, 68, 68, 0.15);
+  --vault-red-dim: #991b1b;
+
+  --vault-blue: #3b82f6;
+  --vault-blue-glow: rgba(59, 130, 246, 0.15);
+  --vault-blue-dim: #1e40af;
+
+  --vault-purple: #a855f7;
+  --vault-purple-glow: rgba(168, 85, 247, 0.15);
+
+  /* ── Text ── */
+  --vault-text-primary: #f1f5f9;
+  --vault-text-secondary: #94a3b8;
+  --vault-text-muted: #475569;
+
+  /* ── Borders ── */
+  --vault-border: rgba(148, 163, 184, 0.08);
+  --vault-border-active: rgba(148, 163, 184, 0.2);
+
+  /* ── Fonts ── */
+  --font-sans: "Inter", system-ui, -apple-system, sans-serif;
+  --font-mono: "JetBrains Mono", "Fira Code", "Cascadia Code", monospace;
+
+  /* ── Spacing ── */
+  --panel-gap: 1px;
+  --panel-padding: 1.25rem;
+
+  /* ── Effects ── */
+  --glass-blur: 12px;
+  --glass-bg: rgba(15, 22, 41, 0.6);
+  --glass-border: rgba(148, 163, 184, 0.06);
+}
+
+/* ── Base Reset ── */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(148, 163, 184, 0.15) transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 6px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.15);
+  border-radius: 3px;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: rgba(148, 163, 184, 0.25);
+}
+
+html {
+  font-family: var(--font-sans);
+  background: var(--vault-bg-primary);
+  color: var(--vault-text-primary);
+}
+
+body {
+  min-height: 100vh;
+  background: var(--vault-bg-primary);
+}
+
+/* ── Glassmorphism Panel ── */
+.glass-panel {
+  background: var(--glass-bg);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  border: 1px solid var(--glass-border);
+  border-radius: 12px;
+}
+
+/* ── Terminal Style ── */
+.terminal-text {
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+  line-height: 1.7;
+  letter-spacing: -0.01em;
+}
+
+/* ── Cursor Blink ── */
+@keyframes cursor-blink {
+  0%,
+  50% {
+    opacity: 1;
+  }
+  51%,
+  100% {
+    opacity: 0;
+  }
+}
+
+.cursor-blink::after {
+  content: "▌";
+  animation: cursor-blink 1s infinite;
+  color: var(--vault-green);
+  font-weight: 400;
+}
+
+/* ── Status Badge Base ── */
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.125rem 0.625rem;
+  border-radius: 9999px;
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.status-badge--read {
+  background: var(--vault-green-glow);
+  color: var(--vault-green);
+  border: 1px solid rgba(34, 197, 94, 0.2);
+}
+
+.status-badge--pending {
+  background: var(--vault-amber-glow);
+  color: var(--vault-amber);
+  border: 1px solid rgba(245, 158, 11, 0.2);
+}
+
+.status-badge--blocked {
+  background: var(--vault-red-glow);
+  color: var(--vault-red);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+.status-badge--approved {
+  background: var(--vault-blue-glow);
+  color: var(--vault-blue);
+  border: 1px solid rgba(59, 130, 246, 0.2);
+}
+
+/* ── Pulse Dot ── */
+@keyframes pulse-dot {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.5);
+    opacity: 0.5;
+  }
+}
+
+.pulse-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  animation: pulse-dot 2s ease-in-out infinite;
+}
+
+/* ── Red Flash (Attack blocked) ── */
+@keyframes red-flash {
+  0% {
+    box-shadow: inset 0 0 0 0 rgba(239, 68, 68, 0);
+  }
+  15% {
+    box-shadow: inset 0 0 60px 20px rgba(239, 68, 68, 0.15);
+  }
+  100% {
+    box-shadow: inset 0 0 0 0 rgba(239, 68, 68, 0);
+  }
+}
+
+.red-flash {
+  animation: red-flash 0.8s ease-out;
+}
+
+/* ── Scan Line ── */
+@keyframes scanline {
+  0% {
+    transform: translateY(-100%);
+  }
+  100% {
+    transform: translateY(100vh);
+  }
+}
+
+.scanline::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(34, 197, 94, 0.1),
+    transparent
+  );
+  animation: scanline 8s linear infinite;
+  pointer-events: none;
+}
+
+/* ── Grid Background ── */
+.grid-bg {
+  background-image: radial-gradient(
+      circle at 1px 1px,
+      rgba(148, 163, 184, 0.03) 1px,
+      transparent 0
+    );
+  background-size: 24px 24px;
+}
+
+/* ── Glow Effects ── */
+.glow-green {
+  box-shadow: 0 0 20px rgba(34, 197, 94, 0.1),
+    0 0 40px rgba(34, 197, 94, 0.05);
+}
+
+.glow-red {
+  box-shadow: 0 0 20px rgba(239, 68, 68, 0.1), 0 0 40px rgba(239, 68, 68, 0.05);
+}
+
+.glow-amber {
+  box-shadow: 0 0 20px rgba(245, 158, 11, 0.1),
+    0 0 40px rgba(245, 158, 11, 0.05);
+}
