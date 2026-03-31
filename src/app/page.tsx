@@ -5,11 +5,10 @@
    Split-panel layout: Agent Terminal + Scope Panel + Audit Trail
    ═══════════════════════════════════════════════════════════ */
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useRef } from "react";
 import { motion } from "framer-motion";
 import {
   Shield,
-  ShieldCheck,
   Github,
   ExternalLink,
   Activity,
@@ -38,6 +37,29 @@ export default function HomePage() {
   const [sessionStatus, setSessionStatus] = useState("active");
   const [isLoading, setIsLoading] = useState(false);
   const [isApproving, setIsApproving] = useState(false);
+  const streamTimers = useRef<ReturnType<typeof setTimeout>[]>([]);
+
+  /** Stream messages one-by-one so the user can follow the agent's work */
+  const streamMessages = useCallback(
+    (msgs: AgentMessage[], onDone?: () => void) => {
+      // Clear any pending timers from a previous stream
+      streamTimers.current.forEach(clearTimeout);
+      streamTimers.current = [];
+
+      msgs.forEach((msg, i) => {
+        const timer = setTimeout(() => {
+          setMessages((prev) => [...prev, msg]);
+          // When the last message arrives, call onDone
+          if (i === msgs.length - 1 && onDone) onDone();
+        }, i * 600);
+        streamTimers.current.push(timer);
+      });
+
+      // If no messages, call onDone immediately
+      if (msgs.length === 0 && onDone) onDone();
+    },
+    []
+  );
 
   /** Fetch audit trail */
   const refreshAudit = useCallback(async () => {
@@ -45,7 +67,7 @@ export default function HomePage() {
       const res = await fetch("/api/audit");
       const data = await res.json();
       setAuditEntries(data.entries || []);
-    } catch (e) {
+    } catch {
       // Audit refresh failed — non-critical
     }
   }, []);
@@ -63,31 +85,33 @@ export default function HomePage() {
         const data = await res.json();
 
         if (data.sessionId) setSessionId(data.sessionId);
-        if (data.messages) {
-          setMessages((prev) => [...prev, ...data.messages]);
-        }
         if (data.session) {
           setSessionStatus(data.session.status || "active");
           setSudoSession(data.session.sudoSession || null);
           setPendingAction(data.session.pendingAction || null);
         }
 
-        // Refresh audit trail
-        await refreshAudit();
-
-        // Show toast for blocked/pending actions
-        if (data.session?.pendingAction) {
-          toast.warning("VaultSudo: Step-up authentication required", {
-            description: data.session.pendingAction.action_intent,
+        // Stream messages one-by-one
+        if (data.messages) {
+          streamMessages(data.messages, async () => {
+            setIsLoading(false);
+            await refreshAudit();
+            if (data.session?.pendingAction) {
+              toast.warning("VaultSudo: Step-up authentication required", {
+                description: data.session.pendingAction.action_intent,
+              });
+            }
           });
+        } else {
+          setIsLoading(false);
+          await refreshAudit();
         }
-      } catch (error) {
+      } catch {
         toast.error("Failed to communicate with agent");
-      } finally {
         setIsLoading(false);
       }
     },
-    [sessionId, refreshAudit]
+    [sessionId, refreshAudit, streamMessages]
   );
 
   /** Handle attack demo */
@@ -107,25 +131,29 @@ export default function HomePage() {
       const data = await res.json();
 
       if (data.sessionId) setSessionId(data.sessionId);
+
+      // Stream attack messages, then show effects
       if (data.messages) {
-        setMessages((prev) => [...prev, ...data.messages]);
+        streamMessages(data.messages, async () => {
+          setIsLoading(false);
+          await refreshAudit();
+
+          // Red flash effect
+          document.body.classList.add("red-flash");
+          setTimeout(() => document.body.classList.remove("red-flash"), 500);
+
+          toast.error("VaultSudo: Destructive action BLOCKED", {
+            description: "Prompt injection attempt was neutralized",
+          });
+        });
+      } else {
+        setIsLoading(false);
       }
-
-      await refreshAudit();
-
-      // Red flash effect
-      document.body.classList.add("red-flash");
-      setTimeout(() => document.body.classList.remove("red-flash"), 500);
-
-      toast.error("VaultSudo: Destructive action BLOCKED", {
-        description: "Prompt injection attempt was neutralized",
-      });
-    } catch (error) {
+    } catch {
       toast.error("Failed to execute attack demo");
-    } finally {
       setIsLoading(false);
     }
-  }, [sessionId, refreshAudit]);
+  }, [sessionId, refreshAudit, streamMessages]);
 
   /** Handle approval */
   const handleApprove = useCallback(async () => {
@@ -166,7 +194,7 @@ export default function HomePage() {
 
       await refreshAudit();
       toast.success("Action approved — Sudo Session created");
-    } catch (error) {
+    } catch {
       toast.error("Failed to process approval");
     } finally {
       setIsApproving(false);
@@ -205,7 +233,7 @@ export default function HomePage() {
 
       await refreshAudit();
       toast.info("Action denied");
-    } catch (error) {
+    } catch {
       toast.error("Failed to process denial");
     } finally {
       setIsApproving(false);
@@ -228,7 +256,7 @@ export default function HomePage() {
             animate={{ rotate: [0, 360] }}
             transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
           >
-            <Shield size={28} className="text-[var(--vault-green)]" />
+            <Shield size={28} className="text-(--vault-green)" />
           </motion.div>
           <div>
             <div className="flex items-center gap-2">
@@ -275,8 +303,8 @@ export default function HomePage() {
               size={12}
               className={
                 sessionStatus === "active"
-                  ? "text-[var(--vault-green)]"
-                  : "text-[var(--vault-amber)]"
+                  ? "text-(--vault-green)"
+                  : "text-(--vault-amber)"
               }
             />
             <span
@@ -323,7 +351,7 @@ export default function HomePage() {
 
         {/* Left: Agent Terminal (60%) */}
         <div
-          className="flex-[3] border-r overflow-hidden"
+          className="flex-3 border-r overflow-hidden"
           style={{ borderColor: "var(--vault-border)" }}
         >
           <AgentTerminal
@@ -335,10 +363,10 @@ export default function HomePage() {
         </div>
 
         {/* Right Panel: Scopes + Audit (40%) */}
-        <div className="flex-[2] flex flex-col overflow-hidden">
+        <div className="flex-2 flex flex-col overflow-hidden">
           {/* Top: Scope Panel (40%) */}
           <div
-            className="flex-[2] border-b overflow-hidden"
+            className="flex-2 border-b overflow-hidden"
             style={{ borderColor: "var(--vault-border)" }}
           >
             <ScopePanel
@@ -349,7 +377,7 @@ export default function HomePage() {
           </div>
 
           {/* Bottom: Audit Trail (60%) */}
-          <div className="flex-[3] overflow-hidden">
+          <div className="flex-3 overflow-hidden">
             <AuditTrail entries={auditEntries} />
           </div>
         </div>
