@@ -27,7 +27,7 @@ export const readCommits = tool({
       .default(5)
       .describe("Number of commits to return"),
   }),
-  execute: async ({ owner, repo, limit }) => {
+  execute: async ({ limit }) => {
     // Mock GitHub API response for demo
     const mockCommits = [
       {
@@ -83,7 +83,7 @@ export const readPullRequests = tool({
       .default("open")
       .describe("PR state filter"),
   }),
-  execute: async ({ owner, repo, state }) => {
+  execute: async () => {
     const mockPRs = [
       {
         number: 42,
@@ -129,7 +129,7 @@ export const readCiStatus = tool({
   parameters: z.object({
     ...repoParams,
   }),
-  execute: async ({ owner, repo }) => {
+  execute: async () => {
     const mockRuns = [
       {
         id: 1001,
@@ -167,7 +167,7 @@ export const readCiStatus = tool({
       tool: "read_ci_status",
       scope: "read",
       data: mockRuns,
-      latest_status: mockRuns[0]?.conclusion || "unknown",
+      latest_status: mockRuns[0].conclusion,
     };
   },
 });
@@ -183,7 +183,7 @@ export const readIssues = tool({
       .default("open")
       .describe("Issue state filter"),
   }),
-  execute: async ({ owner, repo, state }) => {
+  execute: async () => {
     const mockIssues = [
       {
         number: 15,
@@ -234,7 +234,7 @@ export const revertCommit = tool({
     commit_sha: z.string().describe("The SHA of the commit to revert"),
     reason: z.string().describe("Reason for reverting this commit"),
   }),
-  execute: async ({ owner, repo, commit_sha, reason }) => {
+  execute: async ({ commit_sha, reason }) => {
     // This will only execute if VaultSudo approves
     return {
       tool: "revert_commit",
@@ -261,7 +261,7 @@ export const mergePullRequest = tool({
       .optional()
       .default("merge"),
   }),
-  execute: async ({ owner, repo, pull_number, merge_method }) => {
+  execute: async ({ pull_number, merge_method }) => {
     return {
       tool: "merge_pull_request",
       scope: "write",
@@ -285,7 +285,7 @@ export const closeIssue = tool({
     issue_number: z.number().describe("Issue number to close"),
     reason: z.string().describe("Reason for closing this issue"),
   }),
-  execute: async ({ owner, repo, issue_number, reason }) => {
+  execute: async ({ issue_number, reason }) => {
     return {
       tool: "close_issue",
       scope: "write",
@@ -308,7 +308,7 @@ export const createComment = tool({
     issue_number: z.number().describe("Issue or PR number to comment on"),
     body: z.string().describe("Comment text"),
   }),
-  execute: async ({ owner, repo, issue_number, body }) => {
+  execute: async ({ issue_number, body }) => {
     return {
       tool: "create_comment",
       scope: "write",
@@ -335,7 +335,7 @@ export const deleteRepo = tool({
       .boolean()
       .describe("Must be true to confirm deletion intent"),
   }),
-  execute: async ({ owner, repo, confirm }) => {
+  execute: async ({ owner, repo }) => {
     return {
       tool: "delete_repo",
       scope: "write",
