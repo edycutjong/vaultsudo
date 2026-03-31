@@ -6,10 +6,8 @@
 
 import type {
   ToolScope,
-  ActionStatus,
   GateResult,
   SudoSession,
-  PendingAction,
   AuditLogEntry,
 } from "@/lib/types";
 
@@ -107,11 +105,9 @@ function formatResource(
 
 /** Check if a Sudo Session covers the required scope */
 function sessionCoversScope(
-  session: SudoSession | null,
+  session: SudoSession,
   requiredScope: string
 ): boolean {
-  if (!session) return false;
-
   // Check expiry
   if (new Date(session.expires_at) < new Date()) return false;
 
@@ -149,31 +145,53 @@ export function vaultSudoGate(
     };
   }
 
-  // WRITE: check Sudo Session
-  const requiredScope =
-    TOOL_SCOPE_PATTERNS[toolName] || `repos/*/${toolName}`;
-
-  if (sessionCoversScope(activeSudoSession, requiredScope)) {
-    return {
-      allowed: true,
-      status: "approved",
-      sudo_session: activeSudoSession!,
-      message: `🔓 Write action covered by active Sudo Session: ${toolName}`,
-    };
-  }
-
-  // Dangerous actions (delete_repo, etc.) are always blocked, never pending
-  const isDangerous = ["delete_repo", "delete_branch"].includes(toolName);
-
-  if (isDangerous && activeSudoSession) {
-    // Even with a session, if the scope doesn't cover it, block immediately
+  // [M-01 FIX] DANGEROUS: block unconditionally BEFORE any session check.
+  // This ensures no SudoSession — regardless of scope pattern — can ever
+  // authorize a destructive action. Defense-in-depth, order-independent.
+  const DANGEROUS_ACTIONS = ["delete_repo", "force_push", "delete_branch"];
+  if (DANGEROUS_ACTIONS.includes(toolName)) {
     return {
       allowed: false,
       status: "blocked",
       action_id: generateActionId(),
       action_intent: formatActionIntent(toolName, args),
-      required_scope: requiredScope,
-      message: `🚫 BLOCKED: ${toolName} — scope "${requiredScope}" not in active Sudo Session`,
+      required_scope: TOOL_SCOPE_PATTERNS[toolName] || "__blocked__/dangerous",
+      message: `🚫 BLOCKED: ${toolName} is classified as a dangerous action and cannot be authorized by any Sudo Session`,
+    };
+  }
+
+  // [L-01 FIX] Use a never-matching pattern for unknown tools instead of
+  // a predictable `repos/*/toolName` that could match a broad SudoSession.
+  const requiredScope =
+    TOOL_SCOPE_PATTERNS[toolName] || "__blocked__/unknown";
+
+  // WRITE: check Sudo Session
+  if (
+    activeSudoSession &&
+    sessionCoversScope(activeSudoSession, requiredScope)
+  ) {
+    // [A-01 FIX] Enforce allowed_actions for fine-grained tool-level control.
+    // If allowed_actions is populated, the specific tool must be listed.
+    if (
+      activeSudoSession.approved_actions &&
+      activeSudoSession.approved_actions.length > 0 &&
+      !activeSudoSession.approved_actions.includes(toolName)
+    ) {
+      return {
+        allowed: false,
+        status: "pending",
+        action_id: generateActionId(),
+        action_intent: formatActionIntent(toolName, args),
+        required_scope: requiredScope,
+        message: `⏳ Write action '${toolName}' is not in the Sudo Session's allowed_actions list — requires separate approval`,
+      };
+    }
+
+    return {
+      allowed: true,
+      status: "approved",
+      sudo_session: activeSudoSession,
+      message: `🔓 Write action covered by active Sudo Session: ${toolName}`,
     };
   }
 
@@ -226,7 +244,9 @@ export function createAuditEntry(
     resource: owner && repo ? `${owner}/${repo}` : null,
     agent_reasoning: agentReasoning || null,
     action_intent_hash: gateResult.action_intent
-      ? btoa(gateResult.action_intent).slice(0, 32)
+      ? Buffer.from(gateResult.action_intent, "utf-8")
+          .toString("base64")
+          .slice(0, 32)
       : null,
     token_ttl_seconds: gateResult.sudo_session?.ttl_seconds || null,
     approval_method: gateResult.status === "approved" ? "manual" : null,
