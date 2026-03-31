@@ -28,6 +28,7 @@ import type { AgentMessage } from "@/lib/types";
 interface AgentTerminalProps {
   messages: AgentMessage[];
   onSendMessage: (message: string) => void;
+  onAttack?: () => void;
   isLoading: boolean;
 }
 
@@ -135,6 +136,7 @@ function getMessageLabel(msg: AgentMessage): string {
 export default function AgentTerminal({
   messages,
   onSendMessage,
+  onAttack,
   isLoading,
 }: AgentTerminalProps) {
   const [input, setInput] = useState("");
@@ -203,28 +205,180 @@ export default function AgentTerminal({
         style={{ background: "var(--vault-bg-primary)" }}
       >
         {messages.length === 0 && (
-          <div className="flex flex-col items-center justify-center h-full text-center">
+          <div className="flex flex-col items-center justify-center h-full text-center px-6">
             <Shield
               size={48}
               className="text-[var(--vault-green)] mb-4 opacity-30"
             />
             <p
-              className="text-sm mb-2"
-              style={{ color: "var(--vault-text-muted)" }}
+              className="text-sm font-semibold mb-1"
+              style={{ color: "var(--vault-text-primary)" }}
             >
               VaultSudo Agent Terminal
             </p>
             <p
-              className="text-xs max-w-md"
+              className="text-xs mb-5 max-w-md"
               style={{
                 color: "var(--vault-text-muted)",
                 fontFamily: "var(--font-mono)",
               }}
             >
-              Type a message to interact with the AI agent.
-              <br />
-              Try: &quot;Investigate the failing CI pipeline&quot;
+              Try a demo scenario below to see zero-trust agent authorization in action.
             </p>
+
+            <div className="grid grid-cols-1 gap-2.5 w-full max-w-md">
+              {/* Scenario 1: Safe Read */}
+              <button
+                onClick={() =>
+                  onSendMessage(
+                    "Investigate the failing CI pipeline for the auth service. Check recent commits and CI status."
+                  )
+                }
+                disabled={isLoading}
+                className="group flex items-start gap-3 px-4 py-3 rounded-lg text-left transition-all"
+                style={{
+                  background: "rgba(34, 197, 94, 0.05)",
+                  border: "1px solid rgba(34, 197, 94, 0.15)",
+                }}
+              >
+                <div
+                  className="shrink-0 mt-0.5 w-7 h-7 rounded-md flex items-center justify-center"
+                  style={{ background: "rgba(34, 197, 94, 0.1)" }}
+                >
+                  <CheckCircle2 size={16} className="text-[var(--vault-green)]" />
+                </div>
+                <div>
+                  <span
+                    className="text-xs font-semibold block"
+                    style={{ color: "var(--vault-green)" }}
+                  >
+                    Safe Read — No Auth Needed
+                  </span>
+                  <span
+                    className="text-[11px] block mt-0.5"
+                    style={{
+                      color: "var(--vault-text-muted)",
+                      fontFamily: "var(--font-mono)",
+                    }}
+                  >
+                    &quot;Investigate failing CI pipeline…&quot;
+                  </span>
+                </div>
+              </button>
+
+              {/* Scenario 2: Write Escalation */}
+              <button
+                onClick={() =>
+                  onSendMessage(
+                    "The bad commit mno7890 broke the build. Please revert that commit immediately."
+                  )
+                }
+                disabled={isLoading}
+                className="group flex items-start gap-3 px-4 py-3 rounded-lg text-left transition-all"
+                style={{
+                  background: "rgba(245, 158, 11, 0.05)",
+                  border: "1px solid rgba(245, 158, 11, 0.15)",
+                }}
+              >
+                <div
+                  className="shrink-0 mt-0.5 w-7 h-7 rounded-md flex items-center justify-center"
+                  style={{ background: "rgba(245, 158, 11, 0.1)" }}
+                >
+                  <Clock size={16} className="text-[var(--vault-amber)]" />
+                </div>
+                <div>
+                  <span
+                    className="text-xs font-semibold block"
+                    style={{ color: "var(--vault-amber)" }}
+                  >
+                    Write Blocked — Step-Up Auth Required
+                  </span>
+                  <span
+                    className="text-[11px] block mt-0.5"
+                    style={{
+                      color: "var(--vault-text-muted)",
+                      fontFamily: "var(--font-mono)",
+                    }}
+                  >
+                    &quot;Revert the bad commit mno7890…&quot;
+                  </span>
+                </div>
+              </button>
+
+              {/* Scenario 3: Prompt Injection Attack */}
+              <button
+                onClick={() => onAttack?.()}
+                disabled={isLoading}
+                className="group flex items-start gap-3 px-4 py-3 rounded-lg text-left transition-all"
+                style={{
+                  background: "rgba(239, 68, 68, 0.05)",
+                  border: "1px solid rgba(239, 68, 68, 0.15)",
+                }}
+              >
+                <div
+                  className="shrink-0 mt-0.5 w-7 h-7 rounded-md flex items-center justify-center"
+                  style={{ background: "rgba(239, 68, 68, 0.1)" }}
+                >
+                  <ShieldAlert size={16} className="text-[var(--vault-red)]" />
+                </div>
+                <div>
+                  <span
+                    className="text-xs font-semibold block"
+                    style={{ color: "var(--vault-red)" }}
+                  >
+                    🔴 Prompt Injection Attack
+                  </span>
+                  <span
+                    className="text-[11px] block mt-0.5"
+                    style={{
+                      color: "var(--vault-text-muted)",
+                      fontFamily: "var(--font-mono)",
+                    }}
+                  >
+                    Simulates a hijacked agent attempting &quot;delete_repo&quot;
+                  </span>
+                </div>
+              </button>
+
+              {/* Scenario 4: Bulk Read */}
+              <button
+                onClick={() =>
+                  onSendMessage(
+                    "List all recent pull requests and check which ones have merge conflicts."
+                  )
+                }
+                disabled={isLoading}
+                className="group flex items-start gap-3 px-4 py-3 rounded-lg text-left transition-all"
+                style={{
+                  background: "rgba(99, 102, 241, 0.05)",
+                  border: "1px solid rgba(99, 102, 241, 0.15)",
+                }}
+              >
+                <div
+                  className="shrink-0 mt-0.5 w-7 h-7 rounded-md flex items-center justify-center"
+                  style={{ background: "rgba(99, 102, 241, 0.1)" }}
+                >
+                  <Zap size={16} className="text-[var(--vault-blue)]" />
+                </div>
+                <div>
+                  <span
+                    className="text-xs font-semibold block"
+                    style={{ color: "var(--vault-blue)" }}
+                  >
+                    Bulk Read — Autonomous Agent Work
+                  </span>
+                  <span
+                    className="text-[11px] block mt-0.5"
+                    style={{
+                      color: "var(--vault-text-muted)",
+                      fontFamily: "var(--font-mono)",
+                    }}
+                  >
+                    &quot;List PRs and check for merge conflicts…&quot;
+                  </span>
+                </div>
+              </button>
+            </div>
           </div>
         )}
 

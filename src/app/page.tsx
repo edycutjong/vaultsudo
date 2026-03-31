@@ -329,6 +329,7 @@ export default function HomePage() {
           <AgentTerminal
             messages={messages}
             onSendMessage={handleSendMessage}
+            onAttack={handleAttack}
             isLoading={isLoading}
           />
         </div>
