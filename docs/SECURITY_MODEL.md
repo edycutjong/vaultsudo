@@ -65,25 +65,26 @@ if (DANGEROUS_ACTIONS.includes(toolName)) {
 
 For non-dangerous write actions, VaultSudo checks for an active Sudo Session:
 
-```
-┌────────────────────────────────────────┐
-│           Sudo Session Check           │
-│                                        │
-│  1. Does a session exist?              │
-│     └── No → status: "pending"         │
-│                                        │
-│  2. Is the session expired?            │
-│     └── Yes → status: "pending"        │
-│                                        │
-│  3. Does scope pattern match?          │
-│     └── No → status: "pending"         │
-│                                        │
-│  4. Is tool in approved_actions?       │
-│     └── No → status: "pending"         │
-│                                        │
-│  5. All checks pass                    │
-│     └── status: "approved" ✅          │
-└────────────────────────────────────────┘
+```mermaid
+flowchart TD
+    A{"Does a session exist?"} -->|No| P1["⏳ status: 'pending'"]
+    A -->|Yes| B{"Is the session expired?"}
+    B -->|Yes| P2["⏳ status: 'pending'"]
+    B -->|No| C{"Does scope pattern match?"}
+    C -->|No| P3["⏳ status: 'pending'"]
+    C -->|Yes| D{"Is tool in approved_actions?"}
+    D -->|No| P4["⏳ status: 'pending'"]
+    D -->|Yes| E["✅ status: 'approved'"]
+
+    style A fill:#1a1a2e,stroke:#f59e0b,color:#fde68a
+    style B fill:#1a1a2e,stroke:#f59e0b,color:#fde68a
+    style C fill:#1a1a2e,stroke:#f59e0b,color:#fde68a
+    style D fill:#1a1a2e,stroke:#f59e0b,color:#fde68a
+    style E fill:#1a1a2e,stroke:#22c55e,color:#bbf7d0
+    style P1 fill:#1a1a2e,stroke:#ef4444,color:#fecaca
+    style P2 fill:#1a1a2e,stroke:#ef4444,color:#fecaca
+    style P3 fill:#1a1a2e,stroke:#ef4444,color:#fecaca
+    style P4 fill:#1a1a2e,stroke:#ef4444,color:#fecaca
 ```
 
 **Scope Matching:** Uses glob-style patterns:
@@ -128,15 +129,15 @@ interface AuditLogEntry {
 
 ### Session Lifecycle
 
-```
-Created (CIBA Approval)
-    │
-    ▼
-Active ──── Tool calls validated against scope + actions
-    │
-    ├── TTL expires → Session invalidated (no renewal)
-    │
-    └── Manual revocation → Session cleared from memory
+```mermaid
+stateDiagram-v2
+    [*] --> Created: CIBA Approval
+    Created --> Active: Session minted
+    Active --> Active: Tool calls validated\nagainst scope + actions
+    Active --> Expired: TTL expires\n(no renewal)
+    Active --> Revoked: Manual revocation\n(session cleared)
+    Expired --> [*]
+    Revoked --> [*]
 ```
 
 ---
@@ -145,25 +146,27 @@ Active ──── Tool calls validated against scope + actions
 
 VaultSudo uses Auth0 CIBA for out-of-band human approval:
 
-```
-Agent wants to write
-        │
-        ▼
-VaultSudo blocks → "pending"
-        │
-        ▼
-Push notification to human's device
-        │
-        ├── Shows Action Intent Diff
-        │   "⚠️ Agent attempting: POST /repos/acme-corp/api-gateway/git/refs (revert mno7890)"
-        │
-        ├── Human reviews and decides
-        │
-        ▼
-/api/webhook/ciba receives callback
-        │
-        ├── approved=true → createSudoSession()
-        └── approved=false → clearPendingAction()
+```mermaid
+sequenceDiagram
+    participant Agent as 🤖 AI Agent
+    participant Gate as 🔒 VaultSudo Gate
+    participant Human as 👤 Human (Device)
+    participant CIBA as /api/webhook/ciba
+
+    Agent->>Gate: Write action requested
+    Gate-->>Agent: 🛑 status: "pending"
+    Gate->>Human: Push notification with<br/>Action Intent Diff
+    Note over Human: "⚠️ Agent attempting:<br/>POST /repos/acme-corp/api-gateway/<br/>git/refs (revert mno7890)"
+
+    alt Approved
+        Human->>CIBA: approved=true
+        CIBA->>CIBA: createSudoSession()
+        CIBA-->>Agent: ✅ Sudo Session granted
+    else Denied
+        Human->>CIBA: approved=false
+        CIBA->>CIBA: clearPendingAction()
+        CIBA-->>Agent: ❌ Action denied
+    end
 ```
 
 **Why CIBA over inline prompts?**
