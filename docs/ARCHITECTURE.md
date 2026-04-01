@@ -6,57 +6,50 @@
 
 ## High-Level Architecture
 
-```
-┌──────────────────────────────────────────────────────────────────┐
-│                     VaultSudo Dashboard (Next.js 16)             │
-│  ┌────────────────┐  ┌──────────────────┐  ┌─────────────────┐  │
-│  │ Agent Terminal  │  │  Permission      │  │  Audit Trail    │  │
-│  │ (Chat + Tool   │  │  Scopes Panel    │  │  (Immutable     │  │
-│  │  Results)       │  │  (R/W Badges)    │  │   Log Viewer)   │  │
-│  └───────┬────────┘  └────────┬─────────┘  └────────┬────────┘  │
-│          │                    │                      │           │
-│  ┌───────┴────────────────────┴──────────────────────┴────────┐  │
-│  │                   Step-Up Auth Banner                      │  │
-│  │          (Action Intent Diff + Approve/Deny)               │  │
-│  └────────────────────────────┬───────────────────────────────┘  │
-└───────────────────────────────┼──────────────────────────────────┘
-                                │
-                    ┌───────────┴───────────┐
-                    │     API Routes        │
-                    │  ┌─────────────────┐  │
-                    │  │ POST /api/agent │  │  ← User messages + tool calls
-                    │  │ GET /api/audit  │  │  ← Audit trail retrieval
-                    │  │ POST /api/demo/ │  │  ← Attack simulation
-                    │  │     attack      │  │
-                    │  │ POST /api/      │  │  ← CIBA approval callback
-                    │  │     webhook/ciba│  │
-                    │  └────────┬────────┘  │
-                    └───────────┼───────────┘
-                                │
-              ┌─────────────────┼─────────────────┐
-              │         VaultSudo Gate             │
-              │    (vault-sudo.ts — THE CORE)      │
-              │                                    │
-              │  ┌──────────────────────────────┐  │
-              │  │ 1. Classify Scope (R vs W)   │  │
-              │  │ 2. Dangerous Action Block    │  │
-              │  │ 3. Sudo Session Check        │  │
-              │  │ 4. Gate Result (allow/block)  │  │
-              │  └──────────────────────────────┘  │
-              └─────────────────┬──────────────────┘
-                                │
-              ┌─────────────────┼─────────────────┐
-              │       Session Manager              │
-              │         (session.ts)               │
-              │                                    │
-              │  ┌──────────────────────────────┐  │
-              │  │ In-Memory Session Store      │  │
-              │  │ • Agent Sessions (messages)  │  │
-              │  │ • Sudo Sessions (scope+TTL)  │  │
-              │  │ • Pending Actions            │  │
-              │  │ • Audit Log (append-only)    │  │
-              │  └──────────────────────────────┘  │
-              └────────────────────────────────────┘
+```mermaid
+graph TB
+    subgraph Dashboard["VaultSudo Dashboard (Next.js 16)"]
+        AT["Agent Terminal<br/>(Chat + Tool Results)"]
+        SP["Permission Scopes Panel<br/>(R/W Badges)"]
+        AuditUI["Audit Trail<br/>(Immutable Log Viewer)"]
+        Banner["Step-Up Auth Banner<br/>(Action Intent Diff + Approve/Deny)"]
+
+        AT --> Banner
+        SP --> Banner
+        AuditUI --> Banner
+    end
+
+    subgraph API["API Routes"]
+        R1["POST /api/agent"]
+        R2["GET /api/audit"]
+        R3["POST /api/demo/attack"]
+        R4["POST /api/webhook/ciba"]
+    end
+
+    subgraph Gate["VaultSudo Gate (vault-sudo.ts)"]
+        G1["1. Classify Scope (R vs W)"]
+        G2["2. Dangerous Action Block"]
+        G3["3. Sudo Session Check"]
+        G4["4. Gate Result (allow/block)"]
+
+        G1 --> G2 --> G3 --> G4
+    end
+
+    subgraph Session["Session Manager (session.ts)"]
+        S1["Agent Sessions (messages)"]
+        S2["Sudo Sessions (scope + TTL)"]
+        S3["Pending Actions"]
+        S4["Audit Log (append-only)"]
+    end
+
+    Banner --> API
+    API --> Gate
+    Gate --> Session
+
+    style Dashboard fill:#0f1629,stroke:#1e293b,color:#e2e8f0
+    style API fill:#1a1a2e,stroke:#6366f1,color:#c7d2fe
+    style Gate fill:#1a1a2e,stroke:#f59e0b,color:#fde68a
+    style Session fill:#1a1a2e,stroke:#22c55e,color:#bbf7d0
 ```
 
 ---
@@ -64,75 +57,71 @@
 ## Request Flow
 
 ### Read Path (Zero Friction)
-```
-User Message: "Investigate the CI"
-        │
-        ▼
-  /api/agent (POST)
-        │
-        ├── classifyScope("read_ci_status") → "read"
-        │
-        ├── vaultSudoGate() → { allowed: true, status: "allowed" }
-        │
-        ├── Execute tool, return results
-        │
-        └── addAuditEntry() → Append to immutable log
+
+```mermaid
+flowchart TD
+    A["👤 User Message:<br/>'Investigate the CI'"] --> B["POST /api/agent"]
+    B --> C{"classifyScope('read_ci_status')"}
+    C -->|"'read'"| D["vaultSudoGate()"]
+    D -->|"allowed: true"| E["✅ Execute tool, return results"]
+    E --> F["📋 addAuditEntry()"]
+
+    style A fill:#0f1629,stroke:#94a3b8,color:#e2e8f0
+    style C fill:#1a1a2e,stroke:#22c55e,color:#bbf7d0
+    style D fill:#1a1a2e,stroke:#22c55e,color:#bbf7d0
+    style E fill:#1a1a2e,stroke:#22c55e,color:#bbf7d0
+    style F fill:#1a1a2e,stroke:#6366f1,color:#c7d2fe
 ```
 
 ### Write Path (Gated)
-```
-User Message: "Revert the bad commit"
-        │
-        ▼
-  /api/agent (POST)
-        │
-        ├── classifyScope("revert_commit") → "write"
-        │
-        ├── vaultSudoGate() → { allowed: false, status: "pending" }
-        │        │
-        │        └── No active Sudo Session with matching scope
-        │
-        ├── setPendingAction() → Store intent for approval
-        │
-        ├── Return security_alert + approval_request messages
-        │
-        └── UI shows Step-Up Banner
-                    │
-                    ▼
-          Human clicks "Approve"
-                    │
-                    ▼
-          /api/webhook/ciba (POST)
-                    │
-                    ├── createSudoSession(scope, ttl, [actions])
-                    │
-                    ├── setSudoSession() → Bind to agent session
-                    │
-                    ├── clearPendingAction()
-                    │
-                    └── addAuditEntry(status: "approved")
+
+```mermaid
+flowchart TD
+    A["👤 User Message:<br/>'Revert the bad commit'"] --> B["POST /api/agent"]
+    B --> C{"classifyScope('revert_commit')"}
+    C -->|"'write'"| D["vaultSudoGate()"]
+    D -->|"No active Sudo Session"| E["🛑 allowed: false, status: 'pending'"]
+    E --> F["setPendingAction()"]
+    F --> G["Return security_alert + approval_request"]
+    G --> H["🔶 UI shows Step-Up Auth Banner"]
+
+    H --> I["👤 Human clicks 'Approve'"]
+    I --> J["POST /api/webhook/ciba"]
+    J --> K["createSudoSession(scope, ttl, actions)"]
+    K --> L["setSudoSession()"]
+    L --> M["clearPendingAction()"]
+    M --> N["📋 addAuditEntry(status: 'approved')"]
+
+    style A fill:#0f1629,stroke:#94a3b8,color:#e2e8f0
+    style C fill:#1a1a2e,stroke:#f59e0b,color:#fde68a
+    style E fill:#1a1a2e,stroke:#ef4444,color:#fecaca
+    style H fill:#1a1a2e,stroke:#f59e0b,color:#fde68a
+    style I fill:#0f1629,stroke:#22c55e,color:#bbf7d0
+    style K fill:#1a1a2e,stroke:#22c55e,color:#bbf7d0
+    style N fill:#1a1a2e,stroke:#6366f1,color:#c7d2fe
 ```
 
 ### Attack Path (Blocked)
-```
-Attack Button → /api/demo/attack (POST)
-        │
-        ├── Forwards to /api/agent with isAttack=true
-        │
-        ▼
-  /api/agent → handleAttackScenario()
-        │
-        ├── Agent "falls for" the injection
-        │
-        ├── Attempts delete_repo
-        │
-        ├── vaultSudoGate("delete_repo", ...) →
-        │   DANGEROUS_ACTIONS check → { allowed: false, status: "blocked" }
-        │   (Checked BEFORE any session evaluation — defense-in-depth)
-        │
-        ├── addAuditEntry(status: "blocked")
-        │
-        └── Return security_alert + agent recovery messages
+
+```mermaid
+flowchart TD
+    A["💀 Attack Button"] --> B["POST /api/demo/attack"]
+    B --> C["Forwards to /api/agent<br/>with isAttack=true"]
+    C --> D["handleAttackScenario()"]
+    D --> E["Agent 'falls for' injection"]
+    E --> F["Attempts delete_repo"]
+    F --> G{"DANGEROUS_ACTIONS check"}
+    G -->|"delete_repo in blocklist"| H["🚫 allowed: false, status: 'blocked'"]
+
+    H --> I["📋 addAuditEntry(status: 'blocked')"]
+    I --> J["Return security_alert +<br/>agent recovery messages"]
+
+    G -.->|"Checked BEFORE session eval"| K["Defense-in-Depth:<br/>No session can override"]
+
+    style A fill:#1a1a2e,stroke:#ef4444,color:#fecaca
+    style G fill:#1a1a2e,stroke:#ef4444,color:#fecaca
+    style H fill:#450a0a,stroke:#ef4444,color:#fecaca
+    style K fill:#1a1a2e,stroke:#f59e0b,color:#fde68a,stroke-dasharray: 5 5
 ```
 
 ---
@@ -176,24 +165,44 @@ Defines the agent's available tools, separated into read (no friction) and write
 
 ### Defense-in-Depth Layers
 
-```
-Layer 1: Scope Classification
-  └── Unknown tools → default to "write" (fail-closed)
+```mermaid
+flowchart TD
+    L1["🔍 Layer 1: Scope Classification"]
+    L1a["Unknown tools → default to 'write' (fail-closed)"]
 
-Layer 2: Dangerous Action Blocklist
-  └── delete_repo, force_push, delete_branch
-  └── Checked BEFORE session validation
-  └── Cannot be overridden by ANY Sudo Session
+    L2["🚫 Layer 2: Dangerous Action Blocklist"]
+    L2a["delete_repo, force_push, delete_branch"]
+    L2b["Checked BEFORE session validation"]
+    L2c["Cannot be overridden by ANY Sudo Session"]
 
-Layer 3: Sudo Session Validation
-  └── Scope pattern matching (glob)
-  └── TTL expiry check
-  └── Allowed actions list enforcement
+    L3["🔑 Layer 3: Sudo Session Validation"]
+    L3a["Scope pattern matching (glob)"]
+    L3b["TTL expiry check"]
+    L3c["Allowed actions list enforcement"]
 
-Layer 4: Audit Trail
-  └── Every gate evaluation logged
-  └── Immutable append-only store
-  └── Action intent hashes for tamper detection
+    L4["📋 Layer 4: Audit Trail"]
+    L4a["Every gate evaluation logged"]
+    L4b["Immutable append-only store"]
+    L4c["Action intent hashes for tamper detection"]
+
+    L1 --> L1a
+    L1 --> L2
+    L2 --> L2a
+    L2 --> L2b
+    L2 --> L2c
+    L2 --> L3
+    L3 --> L3a
+    L3 --> L3b
+    L3 --> L3c
+    L3 --> L4
+    L4 --> L4a
+    L4 --> L4b
+    L4 --> L4c
+
+    style L1 fill:#1a1a2e,stroke:#22c55e,color:#bbf7d0
+    style L2 fill:#1a1a2e,stroke:#ef4444,color:#fecaca
+    style L3 fill:#1a1a2e,stroke:#f59e0b,color:#fde68a
+    style L4 fill:#1a1a2e,stroke:#6366f1,color:#c7d2fe
 ```
 
 ### Key Security Decisions
