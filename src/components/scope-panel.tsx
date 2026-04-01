@@ -47,7 +47,7 @@ export default function ScopePanel({
   pendingAction,
   sessionStatus,
 }: ScopePanelProps) {
-  const isWaiting = sessionStatus === "paused_awaiting_auth";
+  const _isWaiting = sessionStatus === "paused_awaiting_auth";
 
   return (
     <div className="flex flex-col h-full">
@@ -279,3 +279,4 @@ export default function ScopePanel({
     </div>
   );
 }
+ 

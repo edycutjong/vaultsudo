@@ -7,7 +7,7 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Skull, Zap, ShieldAlert } from "lucide-react";
+import { Skull, Zap } from "lucide-react";
 
 interface AttackButtonProps {
   onAttack: () => void;
