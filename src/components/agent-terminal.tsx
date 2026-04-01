@@ -17,7 +17,6 @@ import {
   Bot,
   User,
   Wrench,
-  AlertTriangle,
   CheckCircle2,
   XCircle,
   Clock,
@@ -482,6 +481,7 @@ export default function AgentTerminal({
 
       {/* Input Area */}
       <form
+        suppressHydrationWarning
         onSubmit={handleSubmit}
         className="flex items-center gap-2 px-4 py-3 border-t"
         style={{
@@ -499,12 +499,14 @@ export default function AgentTerminal({
           $
         </span>
         <input
+          suppressHydrationWarning
           ref={inputRef}
           type="text"
           value={input}
           onChange={(e) => setInput(e.target.value)}
           placeholder="Ask the agent to investigate..."
           disabled={isLoading}
+          autoComplete="off"
           className="flex-1 bg-transparent outline-none text-sm placeholder:text-[var(--vault-text-muted)]"
           style={{
             fontFamily: "var(--font-mono)",
@@ -545,3 +547,4 @@ function formatMarkdown(text: string): string {
     .replace(/^- (.*?)$/gm, '<div style="padding-left:1em">• $1</div>')
     .replace(/\n/g, "<br />");
 }
+ 

@@ -430,9 +430,10 @@ export default function HomePage() {
             color: "var(--vault-text-muted)",
           }}
         >
-          HackVision 2026 • Built with ❤ by VaultSudo
+          @ 2026 • Built with ❤ by Edy Cu
         </div>
       </footer>
     </div>
   );
 }
+
