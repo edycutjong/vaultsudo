@@ -39,45 +39,20 @@ VaultSudo acts as a **middleware interception layer** between an AI agent and it
 
 <div align="center">
   <img src="docs/demo-output/video.gif" alt="VaultSudo Demo — Read, Write Auth, Prompt Injection Blocked" width="100%" />
-  <p><em>Full walkthrough: Read → Write (step-up auth) → Prompt injection attack (blocked)</em></p>
+  <p><em><strong>Asset: video.gif</strong> — Full end-to-end walkthrough: Read access → Write request intercepted → Human approval → Prompt injection attack blocked.</em></p>
 </div>
 
-### Screenshots
+### Gallery & Walkthrough
 
-### Zero-Trust Dashboard
-> Clean state — all READ scopes unlocked, WRITE scopes locked.
-
-![Dashboard Clean](docs/demo-output/00-dashboard-clean.png)
-
-### Safe Read — Zero Friction
-> Agent autonomously reads CI logs and commits. No human needed.
-
-![Read Results](docs/demo-output/01-read-results.png)
-
-### Write Blocked — Step-Up Auth
-> Agent tries to revert a commit. VaultSudo blocks it and shows the Action Intent Diff.
-
-![Write Blocked](docs/demo-output/02-write-blocked.png)
-
-### Step-Up Auth Banner
-> Human sees exactly what the agent wants to do. Approve or deny with one click.
-
-![Step-Up Banner](docs/demo-output/03-step-up-banner.png)
-
-### Action Approved — Sudo Session Granted
-> Short-lived, scope-bound session minted. Agent can execute that specific action.
-
-![Approved](docs/demo-output/04-approved.png)
-
-### Prompt Injection Attack — BLOCKED
-> Agent gets hijacked. Tries `delete_repo`. VaultSudo catches it instantly.
-
-![Attack Blocked](docs/demo-output/05-attack-blocked.png)
-
-### Final Dashboard State
-> Full audit trail — every action logged, immutable, SOC2-ready.
-
-![Final Dashboard](docs/demo-output/06-final-dashboard.png)
+| Feature | Preview | Caption |
+|---------|---------|---------|
+| **Zero-Trust Dashboard** | ![Dashboard Clean](docs/demo-output/00-dashboard-clean.png) | **Initial Security State**: The VaultSudo dashboard starts in a clean state with all write permissions locked by default. |
+| **Safe Read — No Auth** | ![Read Results](docs/demo-output/01-read-results.png) | **Zero-Friction Read**: The AI agent investigates logs and commits autonomously, requiring zero human intervention. |
+| **Write Intercepted** | ![Write Blocked](docs/demo-output/02-write-blocked.png) | **Action Intercepted**: VaultSudo detects a `revert_commit` attempt and automatically blocks the request. |
+| **Step-Up Auth UI** | ![Step-Up Banner](docs/demo-output/03-step-up-banner.png) | **Action Intent Diff**: A push notification (CIBA) presents the human user with exactly what the agent is attempting. |
+| **Sudo Authorized** | ![Approved](docs/demo-output/04-approved.png) | **Session Granted**: After approval, a short-lived (5-minute), scope-bound write session is minted for the agent. |
+| **Attack Blocked** | ![Attack Blocked](docs/demo-output/05-attack-blocked.png) | **Prompt Injection Blocked**: A malicious `delete_repo` command is caught by the unconditional blocklist. |
+| **Immutable Audit** | ![Final Dashboard](docs/demo-output/06-final-dashboard.png) | **Compliance-Ready Logs**: Every tool call, approval, and denial is logged with action intent hashes in an immutable trail. |
 
 ---
 
