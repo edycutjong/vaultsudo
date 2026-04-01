@@ -59,7 +59,7 @@ export default function ScopePanel({
           background: "rgba(15, 22, 41, 0.8)",
         }}
       >
-        <KeyRound size={14} className="text-[var(--vault-amber)]" />
+        <KeyRound size={14} className="text-(--vault-amber)" />
         <span
           className="text-xs font-semibold tracking-wider"
           style={{
@@ -75,7 +75,7 @@ export default function ScopePanel({
         {/* Read Scopes */}
         <div>
           <div className="flex items-center gap-2 mb-2">
-            <Eye size={12} className="text-[var(--vault-green)]" />
+            <Eye size={12} className="text-(--vault-green)" />
             <span
               className="text-[10px] font-semibold tracking-widest"
               style={{
@@ -96,7 +96,7 @@ export default function ScopePanel({
                   border: "1px solid rgba(34, 197, 94, 0.1)",
                 }}
               >
-                <Unlock size={10} className="text-[var(--vault-green)]" />
+                <Unlock size={10} className="text-(--vault-green)" />
                 <span
                   className="text-[11px]"
                   style={{
@@ -120,7 +120,7 @@ export default function ScopePanel({
         {/* Write Scopes */}
         <div>
           <div className="flex items-center gap-2 mb-2">
-            <Lock size={12} className="text-[var(--vault-red)]" />
+            <Lock size={12} className="text-(--vault-red)" />
             <span
               className="text-[10px] font-semibold tracking-widest"
               style={{
@@ -168,14 +168,14 @@ export default function ScopePanel({
                   }}
                 >
                   {isApproved ? (
-                    <Unlock size={10} className="text-[var(--vault-blue)]" />
+                    <Unlock size={10} className="text-(--vault-blue)" />
                   ) : (
                     <Lock
                       size={10}
                       className={
                         scope.dangerous
-                          ? "text-[var(--vault-red)]"
-                          : "text-[var(--vault-text-muted)]"
+                          ? "text-(--vault-red)"
+                          : "text-(--vault-text-muted)"
                       }
                     />
                   )}
@@ -197,19 +197,19 @@ export default function ScopePanel({
                   {scope.dangerous && (
                     <ShieldAlert
                       size={10}
-                      className="ml-auto text-[var(--vault-red)]"
+                      className="ml-auto text-(--vault-red)"
                     />
                   )}
                   {isApproved && (
                     <ShieldCheck
                       size={10}
-                      className="ml-auto text-[var(--vault-blue)]"
+                      className="ml-auto text-(--vault-blue)"
                     />
                   )}
                   {isPending && (
                     <Timer
                       size={10}
-                      className="ml-auto text-[var(--vault-amber)]"
+                      className="ml-auto text-(--vault-amber)"
                     />
                   )}
                 </motion.div>
@@ -232,7 +232,7 @@ export default function ScopePanel({
               }}
             >
               <div className="flex items-center gap-2 mb-2">
-                <ShieldCheck size={14} className="text-[var(--vault-green)]" />
+                <ShieldCheck size={14} className="text-(--vault-green)" />
                 <span
                   className="text-[10px] font-semibold tracking-widest"
                   style={{
@@ -251,7 +251,7 @@ export default function ScopePanel({
                     color: "var(--vault-text-secondary)",
                   }}
                 >
-                  Scope: <code className="text-[var(--vault-green)]">{sudoSession.scope_pattern}</code>
+                  Scope: <code className="text-(--vault-green)">{sudoSession.scope_pattern}</code>
                 </div>
                 <div
                   className="text-[11px]"
@@ -260,7 +260,7 @@ export default function ScopePanel({
                     color: "var(--vault-text-secondary)",
                   }}
                 >
-                  TTL: <code className="text-[var(--vault-amber)]">{sudoSession.ttl_seconds}s</code>
+                  TTL: <code className="text-(--vault-amber)">{sudoSession.ttl_seconds}s</code>
                 </div>
                 <div
                   className="text-[11px]"

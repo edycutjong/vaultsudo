@@ -24,17 +24,17 @@ function getStatusIcon(status: string) {
   const size = 12;
   switch (status) {
     case "allowed":
-      return <CheckCircle2 size={size} className="text-[var(--vault-green)]" />;
+      return <CheckCircle2 size={size} className="text-(--vault-green)" />;
     case "approved":
-      return <ShieldCheck size={size} className="text-[var(--vault-blue)]" />;
+      return <ShieldCheck size={size} className="text-(--vault-blue)" />;
     case "blocked":
-      return <ShieldAlert size={size} className="text-[var(--vault-red)]" />;
+      return <ShieldAlert size={size} className="text-(--vault-red)" />;
     case "pending":
-      return <Clock size={size} className="text-[var(--vault-amber)]" />;
+      return <Clock size={size} className="text-(--vault-amber)" />;
     case "denied":
-      return <XCircle size={size} className="text-[var(--vault-red)]" />;
+      return <XCircle size={size} className="text-(--vault-red)" />;
     default:
-      return <CheckCircle2 size={size} className="text-[var(--vault-text-muted)]" />;
+      return <CheckCircle2 size={size} className="text-(--vault-text-muted)" />;
   }
 }
 
@@ -66,7 +66,7 @@ export default function AuditTrail({ entries }: AuditTrailProps) {
           background: "rgba(15, 22, 41, 0.8)",
         }}
       >
-        <ScrollText size={14} className="text-[var(--vault-purple)]" />
+        <ScrollText size={14} className="text-(--vault-purple)" />
         <span
           className="text-xs font-semibold tracking-wider"
           style={{

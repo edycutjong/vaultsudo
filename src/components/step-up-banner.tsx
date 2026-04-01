@@ -59,7 +59,7 @@ export default function StepUpBanner({
                 animate={{ rotate: [0, 10, -10, 0] }}
                 transition={{ duration: 0.5, repeat: Infinity, repeatDelay: 2 }}
               >
-                <ShieldAlert size={18} className="text-[var(--vault-amber)]" />
+                <ShieldAlert size={18} className="text-(--vault-amber)" />
               </motion.div>
               <span
                 className="text-sm font-semibold"
@@ -95,7 +95,7 @@ export default function StepUpBanner({
                   <div className="flex items-center gap-2">
                     <AlertTriangle
                       size={14}
-                      className="text-[var(--vault-amber)] shrink-0"
+                      className="text-(--vault-amber) shrink-0"
                     />
                     <span
                       className="text-sm"
@@ -120,7 +120,7 @@ export default function StepUpBanner({
                   }}
                 >
                   Tool:{" "}
-                  <span className="text-[var(--vault-amber)]">
+                  <span className="text-(--vault-amber)">
                     {pendingAction.tool_name}
                   </span>
                 </div>
@@ -132,7 +132,7 @@ export default function StepUpBanner({
                   }}
                 >
                   Scope:{" "}
-                  <span className="text-[var(--vault-amber)]">
+                  <span className="text-(--vault-amber)">
                     {pendingAction.required_scope}
                   </span>
                 </div>
@@ -148,7 +148,7 @@ export default function StepUpBanner({
               >
                 <Fingerprint
                   size={16}
-                  className="text-[var(--vault-blue)]"
+                  className="text-(--vault-blue)"
                 />
                 <div>
                   <div
@@ -176,7 +176,7 @@ export default function StepUpBanner({
                   {[0, 1, 2].map((i) => (
                     <motion.div
                       key={i}
-                      className="w-1.5 h-1.5 rounded-full bg-[var(--vault-blue)]"
+                      className="w-1.5 h-1.5 rounded-full bg-(--vault-blue)"
                       animate={{ opacity: [0.3, 1, 0.3] }}
                       transition={{
                         duration: 1.2,

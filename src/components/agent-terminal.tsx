@@ -66,43 +66,43 @@ function getMessageIcon(msg: AgentMessage) {
 
 /** Get color class for message */
 function getMessageColor(msg: AgentMessage): string {
-  if (msg.status === "blocked") return "text-[var(--vault-red)]";
-  if (msg.status === "pending") return "text-[var(--vault-amber)]";
-  if (msg.status === "approved") return "text-[var(--vault-blue)]";
-  if (msg.status === "denied") return "text-[var(--vault-red)]";
+  if (msg.status === "blocked") return "text-(--vault-red)";
+  if (msg.status === "pending") return "text-(--vault-amber)";
+  if (msg.status === "approved") return "text-(--vault-blue)";
+  if (msg.status === "denied") return "text-(--vault-red)";
 
   switch (msg.type) {
     case "user":
-      return "text-[var(--vault-text-primary)]";
+      return "text-(--vault-text-primary)";
     case "agent":
-      return "text-[var(--vault-green)]";
+      return "text-(--vault-green)";
     case "system":
-      return "text-[var(--vault-purple)]";
+      return "text-(--vault-purple)";
     case "tool_call":
-      return "text-[var(--vault-blue)]";
+      return "text-(--vault-blue)";
     case "tool_result":
-      return "text-[var(--vault-green)]";
+      return "text-(--vault-green)";
     case "security_alert":
-      return "text-[var(--vault-red)]";
+      return "text-(--vault-red)";
     case "approval_request":
-      return "text-[var(--vault-amber)]";
+      return "text-(--vault-amber)";
     case "approval_response":
-      return "text-[var(--vault-blue)]";
+      return "text-(--vault-blue)";
     default:
-      return "text-[var(--vault-text-secondary)]";
+      return "text-(--vault-text-secondary)";
   }
 }
 
 /** Get background for message */
 function getMessageBg(msg: AgentMessage): string {
   if (msg.status === "blocked")
-    return "bg-[var(--vault-red-glow)] border-l-2 border-[var(--vault-red)]";
+    return "bg-(--vault-red-glow) border-l-2 border-(--vault-red)";
   if (msg.type === "security_alert")
-    return "bg-[var(--vault-red-glow)] border-l-2 border-[var(--vault-red)]";
+    return "bg-(--vault-red-glow) border-l-2 border-(--vault-red)";
   if (msg.type === "approval_request")
-    return "bg-[var(--vault-amber-glow)] border-l-2 border-[var(--vault-amber)]";
+    return "bg-(--vault-amber-glow) border-l-2 border-(--vault-amber)";
   if (msg.status === "approved")
-    return "bg-[var(--vault-blue-glow)] border-l-2 border-[var(--vault-blue)]";
+    return "bg-(--vault-blue-glow) border-l-2 border-(--vault-blue)";
   if (msg.type === "user")
     return "bg-[rgba(148,163,184,0.05)]";
   return "";
@@ -172,7 +172,7 @@ export default function AgentTerminal({
           <div className="w-3 h-3 rounded-full bg-[#28c840]" />
         </div>
         <div className="flex items-center gap-2 ml-3">
-          <Terminal size={14} className="text-[var(--vault-text-muted)]" />
+          <Terminal size={14} className="text-(--vault-text-muted)" />
           <span
             className="text-xs font-medium"
             style={{
@@ -184,7 +184,7 @@ export default function AgentTerminal({
           </span>
         </div>
         <div className="ml-auto flex items-center gap-2">
-          <Shield size={14} className="text-[var(--vault-green)]" />
+          <Shield size={14} className="text-(--vault-green)" />
           <span
             className="text-xs"
             style={{
@@ -207,7 +207,7 @@ export default function AgentTerminal({
           <div className="flex flex-col items-center justify-center h-full text-center px-6">
             <Shield
               size={48}
-              className="text-[var(--vault-green)] mb-4 opacity-30"
+              className="text-(--vault-green) mb-4 opacity-30"
             />
             <p
               className="text-sm font-semibold mb-1"
@@ -244,7 +244,7 @@ export default function AgentTerminal({
                   className="shrink-0 mt-0.5 w-7 h-7 rounded-md flex items-center justify-center"
                   style={{ background: "rgba(34, 197, 94, 0.1)" }}
                 >
-                  <CheckCircle2 size={16} className="text-[var(--vault-green)]" />
+                  <CheckCircle2 size={16} className="text-(--vault-green)" />
                 </div>
                 <div>
                   <span
@@ -283,7 +283,7 @@ export default function AgentTerminal({
                   className="shrink-0 mt-0.5 w-7 h-7 rounded-md flex items-center justify-center"
                   style={{ background: "rgba(245, 158, 11, 0.1)" }}
                 >
-                  <Clock size={16} className="text-[var(--vault-amber)]" />
+                  <Clock size={16} className="text-(--vault-amber)" />
                 </div>
                 <div>
                   <span
@@ -318,7 +318,7 @@ export default function AgentTerminal({
                   className="shrink-0 mt-0.5 w-7 h-7 rounded-md flex items-center justify-center"
                   style={{ background: "rgba(239, 68, 68, 0.1)" }}
                 >
-                  <ShieldAlert size={16} className="text-[var(--vault-red)]" />
+                  <ShieldAlert size={16} className="text-(--vault-red)" />
                 </div>
                 <div>
                   <span
@@ -357,7 +357,7 @@ export default function AgentTerminal({
                   className="shrink-0 mt-0.5 w-7 h-7 rounded-md flex items-center justify-center"
                   style={{ background: "rgba(99, 102, 241, 0.1)" }}
                 >
-                  <Zap size={16} className="text-[var(--vault-blue)]" />
+                  <Zap size={16} className="text-(--vault-blue)" />
                 </div>
                 <div>
                   <span
@@ -456,7 +456,7 @@ export default function AgentTerminal({
               {[0, 1, 2].map((i) => (
                 <motion.div
                   key={i}
-                  className="w-1.5 h-1.5 rounded-full bg-[var(--vault-green)]"
+                  className="w-1.5 h-1.5 rounded-full bg-(--vault-green)"
                   animate={{ opacity: [0.3, 1, 0.3] }}
                   transition={{
                     duration: 1,
@@ -507,7 +507,7 @@ export default function AgentTerminal({
           placeholder="Ask the agent to investigate..."
           disabled={isLoading}
           autoComplete="off"
-          className="flex-1 bg-transparent outline-none text-sm placeholder:text-[var(--vault-text-muted)]"
+          className="flex-1 bg-transparent outline-none text-sm placeholder:text-(--vault-text-muted)"
           style={{
             fontFamily: "var(--font-mono)",
             color: "var(--vault-text-primary)",
