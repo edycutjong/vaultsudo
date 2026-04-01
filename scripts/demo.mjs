@@ -55,15 +55,6 @@ async function screenshot(page, name) {
   return path;
 }
 
-/** Smoothly scroll an element into view by selector */
-async function scrollTo(page, selector) {
-  await page.evaluate((sel) => {
-    const el = document.querySelector(sel);
-    if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
-  }, selector);
-  await wait(400);
-}
-
 /** Move mouse slowly to an element center (for visual recording) */
 async function hoverSmooth(page, selector, duration = 600) {
   const el = await page.$(selector);
@@ -74,25 +65,6 @@ async function hoverSmooth(page, selector, duration = 600) {
   const centerY = box.y + box.height / 2;
   await page.mouse.move(centerX, centerY, { steps: Math.ceil(duration / 16) });
   await wait(300);
-}
-
-/** Wait for new messages to appear in the terminal */
-async function waitForMessages(page, minCount = 1, timeout = MESSAGE_WAIT) {
-  const startTime = Date.now();
-  while (Date.now() - startTime < timeout) {
-    const count = await page.$$eval(
-      "[class*='motion']",
-      (els) => els.length
-    );
-    // The terminal streams messages with 600ms delay each, wait for stabilization
-    await wait(800);
-    const countAfter = await page.$$eval(
-      "[class*='motion']",
-      (els) => els.length
-    );
-    if (countAfter === count && countAfter >= minCount) break;
-  }
-  await wait(600); // Extra breathing room for animations to settle
 }
 
 // ═══════════════════════════════════════════════════════════

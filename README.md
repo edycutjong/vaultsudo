@@ -6,6 +6,7 @@
 
   <br/>
 
+  [![CI](https://github.com/edycutjong/vaultsudo/actions/workflows/ci.yml/badge.svg)](https://github.com/edycutjong/vaultsudo/actions/workflows/ci.yml)
   ![Next.js 16](https://img.shields.io/badge/Next.js-16-black?style=flat-square&logo=next.js)
   ![React 19](https://img.shields.io/badge/React-19-61DAFB?style=flat-square&logo=react)
   ![Tailwind v4](https://img.shields.io/badge/Tailwind-v4-38B2AC?style=flat-square&logo=tailwindcss)
