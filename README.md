@@ -38,7 +38,7 @@ VaultSudo acts as a **middleware interception layer** between an AI agent and it
 ## 🎬 Demo
 
 <div align="center">
-  <video src="https://github.com/edycutjong/vaultsudo/raw/main/docs/demo-output/video.webm" width="100%" autoplay loop muted playsinline></video>
+  <img src="docs/demo-output/video.gif" alt="VaultSudo Demo — Read, Write Auth, Prompt Injection Blocked" width="100%" />
   <p><em>Full walkthrough: Read → Write (step-up auth) → Prompt injection attack (blocked)</em></p>
 </div>
 
