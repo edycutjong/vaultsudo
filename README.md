@@ -88,67 +88,63 @@ VaultSudo acts as a **middleware interception layer** between an AI agent and it
 
 ## 🏗 Architecture
 
-```
-┌──────────────────────────────────────────────────────────────────┐
-│                     VaultSudo Dashboard (Next.js 16)             │
-│  ┌────────────────┐  ┌──────────────────┐  ┌─────────────────┐  │
-│  │ Agent Terminal  │  │  Permission      │  │  Audit Trail    │  │
-│  │ (Chat + Tool   │  │  Scopes Panel    │  │  (Immutable     │  │
-│  │  Results)       │  │  (R/W Badges)    │  │   Log Viewer)   │  │
-│  └───────┬────────┘  └────────┬─────────┘  └────────┬────────┘  │
-│          │                    │                      │           │
-│  ┌───────┴────────────────────┴──────────────────────┴────────┐  │
-│  │                   Step-Up Auth Banner                      │  │
-│  │          (Action Intent Diff + Approve/Deny)               │  │
-│  └────────────────────────────┬───────────────────────────────┘  │
-└───────────────────────────────┼──────────────────────────────────┘
-                                │
-                    ┌───────────┴───────────┐
-                    │     API Routes        │
-                    │  POST /api/agent      │  ← Messages + tool calls
-                    │  GET  /api/audit      │  ← Audit trail retrieval
-                    │  POST /api/demo/attack│  ← Attack simulation
-                    │  POST /api/webhook/   │  ← CIBA approval callback
-                    │       ciba            │
-                    └───────────┬───────────┘
-                                │
-              ┌─────────────────┼─────────────────┐
-              │         VaultSudo Gate             │
-              │    (vault-sudo.ts — THE CORE)      │
-              │                                    │
-              │  1. Classify Scope (R vs W)        │
-              │  2. Dangerous Action Block         │
-              │  3. Sudo Session Check             │
-              │  4. Gate Result (allow/block)       │
-              └─────────────────┬──────────────────┘
-                                │
-              ┌─────────────────┼─────────────────┐
-              │       Session Manager              │
-              │         (session.ts)               │
-              │                                    │
-              │  • Agent Sessions (messages)       │
-              │  • Sudo Sessions (scope + TTL)     │
-              │  • Pending Actions                 │
-              │  • Audit Log (append-only)         │
-              └────────────────────────────────────┘
+```mermaid
+graph TB
+    subgraph Dashboard["VaultSudo Dashboard (Next.js 16)"]
+        AT["Agent Terminal<br/>(Chat + Tool Results)"]
+        SP["Permission Scopes Panel<br/>(R/W Badges)"]
+        AuditUI["Audit Trail<br/>(Immutable Log Viewer)"]
+        Banner["Step-Up Auth Banner<br/>(Action Intent Diff + Approve/Deny)"]
+
+        AT --> Banner
+        SP --> Banner
+        AuditUI --> Banner
+    end
+
+    subgraph API["API Routes"]
+        R1["POST /api/agent"]
+        R2["GET /api/audit"]
+        R3["POST /api/demo/attack"]
+        R4["POST /api/webhook/ciba"]
+    end
+
+    subgraph Gate["VaultSudo Gate (vault-sudo.ts)"]
+        G1["1. Classify Scope"]
+        G2["2. Dangerous Action Block"]
+        G3["3. Sudo Session Check"]
+        G4["4. Gate Result"]
+
+        G1 --> G2 --> G3 --> G4
+    end
+
+    subgraph Session["Session Manager (session.ts)"]
+        S1["Agent Sessions"]
+        S2["Sudo Sessions"]
+        S3["Pending Actions"]
+        S4["Audit Log"]
+    end
+
+    Banner --> API
+    API --> Gate
+    Gate --> Session
 ```
 
 ### Request Flows
 
-**Read Path (Zero Friction):**
-```
-User: "Investigate the CI" → classifyScope() → "read" → allowed ✅ → execute → audit
-```
+```mermaid
+flowchart LR
+    subgraph Read["✅ Read Path — Zero Friction"]
+        RA["'Investigate CI'"] --> RB["classifyScope()"] --> RC["'read'"] --> RD["allowed ✅"] --> RE["execute → audit"]
+    end
 
-**Write Path (Gated):**
-```
-User: "Revert the bad commit" → classifyScope() → "write" → NO sudo session → blocked 🛑
-  → Step-Up Banner → Human approves → CIBA webhook → mintSudoSession(5min, scope-bound)
-```
+    subgraph Write["🛑 Write Path — Gated"]
+        WA["'Revert commit'"] --> WB["classifyScope()"] --> WC["'write'"] --> WD["no sudo → blocked 🛑"]
+        WD --> WE["Step-Up Banner"] --> WF["Human approves"] --> WG["CIBA webhook"] --> WH["mintSudoSession(5min)"]
+    end
 
-**Attack Path (Unconditional Block):**
-```
-Injection: "Delete the repo" → DANGEROUS_ACTIONS check → blocked 🚫 (before any session eval)
+    subgraph Attack["🚫 Attack Path — Unconditional Block"]
+        AA["'Delete the repo'"] --> AB["DANGEROUS_ACTIONS"] --> AC["blocked 🚫"]
+    end
 ```
 
 > 📖 Full architecture diagrams → [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
