@@ -10,18 +10,12 @@ import {
   addMessage,
   addAuditEntry,
   setPendingAction,
-  clearPendingAction,
-  setSudoSession,
 } from "@/agent/session";
 import {
   vaultSudoGate,
-  classifyScope,
-  formatActionIntent,
-  createSudoSession,
   createAuditEntry,
 } from "@/agent/vault-sudo";
-import { SYSTEM_PROMPT } from "@/agent/system-prompt";
-import type { AgentMessage, GateResult } from "@/lib/types";
+import type { AgentMessage } from "@/lib/types";
 
 /** Simulated agent processing with VaultSudo middleware */
 export async function POST(request: NextRequest) {

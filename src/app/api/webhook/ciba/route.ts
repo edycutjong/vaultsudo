@@ -12,7 +12,7 @@ import {
   addMessage,
   addAuditEntry,
 } from "@/agent/session";
-import { createSudoSession, createAuditEntry } from "@/agent/vault-sudo";
+import { createSudoSession } from "@/agent/vault-sudo";
 
 export async function POST(request: NextRequest) {
   try {
