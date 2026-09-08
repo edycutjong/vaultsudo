@@ -14,9 +14,9 @@
     "ci": "npm run lint && npm run typecheck && npm run test:coverage"
   },
   "dependencies": {
-    "@ai-sdk/openai": "^1.3.22",
+    "@ai-sdk/openai": "^4.0.60",
     "@supabase/supabase-js": "^2.49.4",
-    "ai": "^4.3.16",
+    "ai": "^7.0.93",
     "framer-motion": "^12.6.3",
     "lucide-react": "^0.487.0",
     "next": "16.2.1",
